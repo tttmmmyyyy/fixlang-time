@@ -1,0 +1,12 @@
+[general]
+name = "time"
+version = "0.1.0"
+
+[build]
+files = ["time.fix"]
+preliminary_commands = [["make", "libfixtime.a", "--quiet"]]
+static_links = ["fixtime"]
+library_paths = ["."]
+
+[build.test]
+files = ["test.fix"]

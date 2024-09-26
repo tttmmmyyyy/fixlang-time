@@ -1,0 +1,31 @@
+module Test; 
+
+import Time;
+
+weeks : Array String;
+weeks = ["Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"];
+
+dt_to_string : DateTime -> String;
+dt_to_string = |dt| (
+    dt.@year.to_string + "/" + dt.@month.to_string + "/" + dt.@day_in_month.to_string + " (" + weeks.@(dt.@day_in_week.to_I64) + ") " + 
+    dt.@hour.to_string + ":" + dt.@min.to_string + ":" + 
+    (dt.@sec.to_F64 + 1.0e-9 * dt.@nanosec.to_F64).to_string + 
+    ", dst = " + 
+    if dt.@is_dst.is_none { "none" } else { dt.@is_dst.as_some.to_string }
+);
+
+test : IO ();
+test = (
+    let now = *get_now;
+    eval *(println $ "now.sec = " + now.@sec.to_string + ", now.nanosec = " + now.@nanosec.to_string);
+    let utc = now.to_utc.as_ok;
+    eval *(println $ "UTC: " + dt_to_string(utc));
+    let loc = *now.to_local.try(exit_with_msg(1));
+    eval *(println $ "Loc: " + dt_to_string(loc));
+    let now_from_utc = Time::from_utc(utc).as_ok;
+    let now_from_loc = *Time::from_local(loc).try(exit_with_msg(1));
+    eval assert(|_|"diff utc", (now.to_F64 - now_from_utc.to_F64).abs < 0.1);
+    eval assert(|_|"diff loc", (now.to_F64 - now_from_loc.to_F64).abs < 0.1);
+
+    pure()
+);
