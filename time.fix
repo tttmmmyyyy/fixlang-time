@@ -90,20 +90,20 @@ from_utc = _datetime_to_time_inner(false);
 // Get current time.
 get_now : IO Time;
 get_now = (
-    IO { _data : |_| (
+    IO::from_io_runner $ |io| (
         let buf: Array I64 = Array::empty(2)._unsafe_set_size(2); // sec, usec.
         eval FFI_CALL[() fixtime_clock_gettime(Ptr), buf._get_ptr];
-        Time { sec : buf.@(0), nanosec : buf.@(1).to_U32 }
-    )}
+        (io, Time { sec : buf.@(0), nanosec : buf.@(1).to_U32 })
+    )
 );
 
 // Get current time using CLOCK_MONOTONIC.
 get_now_monotonic : IO Time;
 get_now_monotonic = (
-    IO::from_func $ |_| (
+    IO::from_io_runner $ |io| (
         let buf: Array I64 = Array::empty(2)._unsafe_set_size(2); // sec, usec.
         eval FFI_CALL[() fixtime_clock_gettime_monotonic(Ptr), buf._get_ptr];
-        Time { sec : buf.@(0), nanosec : buf.@(1).to_U32 }
+        (io, Time { sec : buf.@(0), nanosec : buf.@(1).to_U32 })
     )
 );
 
