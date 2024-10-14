@@ -24,8 +24,8 @@ test = (
     eval *(println $ "Loc: " + dt_to_string(loc));
     let now_from_utc = Time::from_utc(utc).as_ok;
     let now_from_loc = *Time::from_local(loc).try(exit_with_msg(1));
-    eval assert(|_|"diff utc", (now.to_F64 - now_from_utc.to_F64).abs < 0.1);
-    eval assert(|_|"diff loc", (now.to_F64 - now_from_loc.to_F64).abs < 0.1);
+    eval *assert(|_|"diff utc", (now.to_F64 - now_from_utc.to_F64).abs < 0.1);
+    eval *assert(|_|"diff loc", (now.to_F64 - now_from_loc.to_F64).abs < 0.1);
 
     pure()
 );
