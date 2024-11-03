@@ -56,7 +56,7 @@ _datetime_to_time_inner = |is_local, dt| (
 _time_to_datetime_inner : Bool -> Time -> Result ErrMsg DateTime;
 _time_to_datetime_inner = |is_local, Time {sec: s, nanosec : ns}| (
     let buf : Array I64 = Array::empty(10)._unsafe_set_size(10); // sec, min, hour, mday, mon, year(-1900), wday, yday, isdst, is_error.
-    let (buf, _) = buf.unsafe_mutate_boxed(|buf_ptr|
+    let (buf, _) = buf.mutate_boxed(|buf_ptr|
         IO::from_runner $ |ios| FFI_CALL_IOS[() fixtime_gmlocaltime(U8, I64, Ptr), if is_local { 1_U8 } else { 0_U8 }, s, buf_ptr, ios]
     );
     
@@ -95,7 +95,7 @@ get_now : IO Time;
 get_now = (
     IO::from_runner $ |io| (
         let buf: Array I64 = Array::empty(2)._unsafe_set_size(2); // sec, usec.
-        let (buf, _) = buf.unsafe_mutate_boxed(|buf_ptr| IO::from_runner $ |ios| FFI_CALL_IOS[() fixtime_clock_gettime(Ptr), buf_ptr, ios]);
+        let (buf, _) = buf.mutate_boxed(|buf_ptr| IO::from_runner $ |ios| FFI_CALL_IOS[() fixtime_clock_gettime(Ptr), buf_ptr, ios]);
         (io, Time { sec : buf.@(0), nanosec : buf.@(1).to_U32 })
     )
 );
@@ -105,7 +105,7 @@ get_now_monotonic : IO Time;
 get_now_monotonic = (
     IO::from_runner $ |io| (
         let buf: Array I64 = Array::empty(2)._unsafe_set_size(2); // sec, usec.
-        let (buf, _) = buf.unsafe_mutate_boxed(|buf_ptr| IO::from_runner $ |ios| FFI_CALL_IOS[() fixtime_clock_gettime_monotonic(Ptr), buf_ptr, ios]);
+        let (buf, _) = buf.mutate_boxed(|buf_ptr| IO::from_runner $ |ios| FFI_CALL_IOS[() fixtime_clock_gettime_monotonic(Ptr), buf_ptr, ios]);
         (io, Time { sec : buf.@(0), nanosec : buf.@(1).to_U32 })
     )
 );
