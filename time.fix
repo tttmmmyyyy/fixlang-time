@@ -42,9 +42,9 @@ _datetime_to_time_inner = |is_local, dt| (
             0
         }
     ];
-    let sec = buf.borrow_ptr(|ptr| FFI_CALL[I64 fixtime_timegmlocal(U8, Ptr), if is_local { 1_U8 } else { 0_U8 }, ptr]);
+    let sec = buf.borrow_boxed(|ptr| FFI_CALL[I64 fixtime_timegmlocal(U8, Ptr), if is_local { 1_U8 } else { 0_U8 }, ptr]);
     if sec == -1 {
-        Result::err $ "An error (maybe overflow) occurred."
+        Result::err $ "An error (possibly overflow) occurred."
     } else {
         Result::ok $ Time { sec : sec, nanosec : dt.@nanosec }
     }
