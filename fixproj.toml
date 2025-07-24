@@ -6,7 +6,7 @@ description = "Provides functions related to time and date."
 [build]
 files = ["time.fix"]
 objects = ["lib.o"]
-preliminary_commands = [["make", "lib.o"]]
+preliminary_commands = [["make", "-s", "lib.o"]]
 
 [build.test]
 files = ["test.fix"]
