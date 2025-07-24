@@ -1,6 +1,6 @@
 [general]
 name = "time"
-version = "1.0.1"
+version = "1.0.2"
 description = "Provides functions related to time and date."
 
 [build]
