@@ -1,5 +1,12 @@
 module Time;
 
+import Std::{
+    Array, Bool, ErrMsg, F64, I32, I64, IO, Option, Result, ToF64, U32, U8, 
+    Array::{empty, @, _unsafe_set_size}, FFI::{borrow_boxed, mutate_boxed}, 
+    IO::{from_runner, IOFail, IOFail::from_result}, Option::{as_some, is_some, none, some}, 
+    Result::{err, ok}, ToF64::f64, ToI32::i32, ToI64::i64, ToU32::u32, ToU8::u8
+};
+
 // The type that represents time by the number of seconds and micro seconds elapsed since the unix epoch.
 // This struct has two fields, `sec: I64` and `nanosec: U32`.
 type Time = unbox struct { sec : I64, nanosec : U32 };
@@ -24,14 +31,14 @@ type DateTime = unbox struct {
 _datetime_to_time_inner : Bool -> DateTime -> Result ErrMsg Time; 
 _datetime_to_time_inner = |is_local, dt| (
     let buf = [
-        dt.@sec.to_I64, 
-        dt.@min.to_I64, 
-        dt.@hour.to_I64, 
-        dt.@day_in_month.to_I64, 
-        dt.@month.to_I64 - 1, 
-        dt.@year.to_I64 - 1900, 
-        dt.@day_in_week.to_I64 - 1, 
-        dt.@day_in_year.to_I64,
+        dt.@sec.i64,
+        dt.@min.i64,
+        dt.@hour.i64,
+        dt.@day_in_month.i64,
+        dt.@month.i64 - 1,
+        dt.@year.i64 - 1900,
+        dt.@day_in_week.i64 - 1,
+        dt.@day_in_year.i64,
         if is_local {
             if dt.@is_dst.is_some {
                 if dt.@is_dst.as_some { 1 } else { 0 }
@@ -65,14 +72,14 @@ _time_to_datetime_inner = |is_local, Time {sec: s, nanosec : ns}| (
     } else {
         Result::ok $ DateTime {
             nanosec : ns,
-            sec : buf.@(0).to_U8,
-            min : buf.@(1).to_U8,
-            hour : buf.@(2).to_U8,
-            day_in_month : buf.@(3).to_U8,
-            month : (buf.@(4) + 1).to_U8,
-            year : (buf.@(5) + 1900).to_I32,
-            day_in_week : buf.@(6).to_U8,
-            day_in_year : (buf.@(7) + 1).to_U32,
+            sec : buf.@(0).u8,
+            min : buf.@(1).u8,
+            hour : buf.@(2).u8,
+            day_in_month : buf.@(3).u8,
+            month : (buf.@(4) + 1).u8,
+            year : (buf.@(5) + 1900).i32,
+            day_in_week : buf.@(6).u8,
+            day_in_year : (buf.@(7) + 1).u32,
             is_dst : (
                 let v = buf.@(8);
                 if v < 0 { Option::none() } else { Option::some(v > 0) }
@@ -96,7 +103,7 @@ get_now = (
     IO::from_runner $ |io| (
         let buf: Array I64 = Array::empty(2)._unsafe_set_size(2); // sec, usec.
         let (buf, _) = buf.mutate_boxed(|buf_ptr| IO::from_runner $ |ios| FFI_CALL_IOS[() fixtime_clock_gettime(Ptr), buf_ptr, ios]);
-        (io, Time { sec : buf.@(0), nanosec : buf.@(1).to_U32 })
+        (io, Time { sec : buf.@(0), nanosec : buf.@(1).u32 })
     )
 );
 
@@ -106,13 +113,18 @@ get_now_monotonic = (
     IO::from_runner $ |io| (
         let buf: Array I64 = Array::empty(2)._unsafe_set_size(2); // sec, usec.
         let (buf, _) = buf.mutate_boxed(|buf_ptr| IO::from_runner $ |ios| FFI_CALL_IOS[() fixtime_clock_gettime_monotonic(Ptr), buf_ptr, ios]);
-        (io, Time { sec : buf.@(0), nanosec : buf.@(1).to_U32 })
+        (io, Time { sec : buf.@(0), nanosec : buf.@(1).u32 })
     )
 );
 
 // Convert time to 64-bit floating value.
 to_F64 : Time -> F64;
-to_F64 = |Time { sec : s, nanosec : ns }| s.to_F64 + ns.to_F64 * 1.0e-9;
+to_F64 = |t| t.f64;
+DEPRECATED[to_F64, "Use the trait member `ToF64::f64` instead."];
+
+impl Time : ToF64 {
+    f64 = |Time { sec : s, nanosec : ns }| s.f64 + ns.f64 * 1.0e-9;
+}
 
 // Convert time to local time.
 // This function depends on timezone, so it returns `IOFail` value.
