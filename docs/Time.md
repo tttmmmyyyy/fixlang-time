@@ -1,6 +1,22 @@
 # Time
 
-Defined in time@1.1.0
+Defined in time@2.0.1
+
+This module provides functions related to time and date.
+
+`Time` is a point in time, as seconds elapsed since the unix epoch, and `DateTime` is its
+calendar date and time of day. `get_now` gets the current time; `to_utc` and `to_local` convert
+a `Time` into a `DateTime`, and `from_utc` and `from_local` convert it back.
+
+## Examples
+
+```fix
+let time = Time { sec : 1000000000, nanosec : 0_U32 };
+let dt = time.to_utc.as_ok;
+assert_eq(|_|"", (dt.@year, dt.@month, dt.@day_in_month), (2001_I32, 9_U8, 9_U8));;
+assert_eq(|_|"", (dt.@hour, dt.@min, dt.@sec), (1_U8, 46_U8, 40_U8));;
+assert_eq(|_|"", from_utc(dt).as_ok.@sec, time.@sec)
+```
 
 ## Values
 
@@ -106,7 +122,7 @@ Type: `Std::Option Std::Bool`
 
 Defined as: `type Time = unbox struct { ...fields... }`
 
-The type that represents time by the number of seconds and micro seconds elapsed since the unix epoch.
+The type that represents time by the number of seconds and nanoseconds elapsed since the unix epoch.
 This struct has two fields, `sec: I64` and `nanosec: U32`.
 
 ##### field `sec`

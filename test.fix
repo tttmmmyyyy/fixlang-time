@@ -2,10 +2,10 @@ module Test;
 
 import Std::{
     Array, F64, IO, String, Array::@, Debug::assert, F64::abs, IO::{exit_with_msg, println, IOFail::try}, 
-    Monad::pure, Option::{as_some, is_none}, Result::as_ok, ToF64::f64, ToI64::i64, ToString::to_string
+    Monad::pure, Option::{as_some, is_none, some}, Result::as_ok, String::borrow_c_str_io, ToF64::f64, ToI64::i64, ToString::to_string
 };
 import Time::{
-    from_local, from_utc, get_now, to_local, to_utc, DateTime, 
+    from_local, from_utc, get_now, to_local, to_utc, DateTime, Time, 
     DateTime::{@day_in_month, @day_in_week, @hour, @is_dst, @min, @month, @nanosec, @sec, @year}, 
     Time::{@nanosec, @sec}
 }; 
@@ -35,5 +35,23 @@ test = (
     assert(|_|"diff utc", (now.f64 - now_from_utc.f64).abs < 0.1);;
     assert(|_|"diff loc", (now.f64 - now_from_loc.f64).abs < 0.1);;
 
+    // A time in daylight saving time is converted to local time, and back.
+    set_timezone("America/New_York");;
+    let time = Time { sec : 1000000000, nanosec : 0_U32 };
+    let loc = *time.to_local.try(exit_with_msg(1));
+    assert(|_|"dst hour", loc.@hour == 21_U8);;
+    assert(|_|"dst flag", loc.@is_dst == some(true));;
+    let back = *Time::from_local(loc).try(exit_with_msg(1));
+    assert(|_|"dst back", back.@sec == time.@sec);;
+
     pure()
+);
+
+// Sets the timezone of the process to `tz`.
+set_timezone : String -> IO ();
+set_timezone = |tz| (
+    let _ = *"TZ".borrow_c_str_io(|name| tz.borrow_c_str_io(|value|
+        FFI_CALL_IO[I32 setenv(Ptr, Ptr, I32), name, value, 1_I32]
+    ));
+    FFI_CALL_IO[() tzset()]
 );
